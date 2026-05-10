@@ -1,3 +1,6 @@
 settings.json
 .proj
 CLAUDE.md
+LESSONS.md
+.env
+.env.*
