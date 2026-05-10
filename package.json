@@ -1,0 +1,29 @@
+{
+  "name": "financial-mmo-platform",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "13.5.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "typescript": "5.2.2",
+    "tailwindcss": "3.3.3",
+    "@tailwindcss/forms": "0.5.7",
+    "@tailwindcss/typography": "0.5.9",
+    "framer-motion": "10.12.16",
+    "zustand": "4.4.1",
+    "@supabase/supabase-js": "2.39.4",
+    "shadcn-ui": "0.1.0"
+  },
+  "devDependencies": {
+    "eslint": "8.48.0",
+    "eslint-config-next": "13.5.0",
+    "prettier": "3.1.0"
+  }
+}
