@@ -1,6 +1,7 @@
 import '@/styles/globals.css';
 import { Providers } from '@/lib/providers';
 import { NavBar } from '@/components/NavBar';
+import { Header } from '@/components/Header';
 
 export const metadata = {
   title: 'Financial MMO Platform',
@@ -17,6 +18,7 @@ export default function RootLayout({
       <head />
       <body className="min-h-screen flex flex-col">
         <Providers>
+          <Header />
           <NavBar />
           {children}
         </Providers>
