@@ -136,6 +136,23 @@ export const mockAchievements = [
   },
 ];
 
+// Mock portfolio history - simulates a portfolio_history time-series table
+// 12 monthly snapshots ending near PortfolioSummary's netWorth (123,456)
+export const mockPortfolioHistory = [
+  { date: '2025-06-01', value: 100000 },
+  { date: '2025-07-01', value: 102450 },
+  { date: '2025-08-01', value: 99820 },
+  { date: '2025-09-01', value: 104300 },
+  { date: '2025-10-01', value: 108150 },
+  { date: '2025-11-01', value: 106700 },
+  { date: '2025-12-01', value: 111200 },
+  { date: '2026-01-01', value: 114800 },
+  { date: '2026-02-01', value: 113100 },
+  { date: '2026-03-01', value: 117950 },
+  { date: '2026-04-01', value: 120480 },
+  { date: '2026-05-01', value: 123456 },
+];
+
 // Mock user data
 export const mockUser = {
   id: 'user1',

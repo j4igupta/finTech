@@ -4,3 +4,6 @@ CLAUDE.md
 LESSONS.md
 .env
 .env.*
+node_modules
+.next
+tsconfig.tsbuildinfo
