@@ -1,12 +1,11 @@
-// 1. Define the props this component expects to receive
-interface XPBarProps {
-  currentXP: number;
-  nextLevelXP: number;
-}
+'use client';
 
-export function XPBar({ currentXP, nextLevelXP }: XPBarProps) {
-  // 2. Calculate the width percentage safely
-  const percent = Math.min(100, Math.max(0, (currentXP / nextLevelXP) * 100));
+import React, { useState } from 'react';
+
+export function XPBar() {
+  const [currentXP, setCurrentXP] = useState(0);
+  const [nextLevelXP, setNextLevelXP] = useState(1000);
+  const percent = Math.min(100, (currentXP / nextLevelXP) * 100);
 
   return (
     <div className="mx-6 my-2">
@@ -15,7 +14,7 @@ export function XPBar({ currentXP, nextLevelXP }: XPBarProps) {
         <span>{nextLevelXP}</span>
       </div>
       <div className="h-2 bg-gray-700 rounded">
-        <div 
+        <div
           className="h-full bg-primary rounded"
           style={{ width: `${percent}%` }}
         />

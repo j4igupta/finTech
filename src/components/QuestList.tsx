@@ -1,5 +1,8 @@
+'use client';
+
 import { useState } from 'react';
 import { mockQuests } from '@/lib/mockData';
+import { cn } from '@/lib/utils';
 
 interface Quest {
   id: string;
@@ -62,13 +65,12 @@ export function QuestList() {
       <h2 className="text-2xl font-bold text-white mb-4">Daily Quests</h2>
       <div className="space-y-3">
         {quests.map((quest) => (
-          <div key={quest.id} className={[
+          <div key={quest.id} className={cn(
             'p-4 rounded-lg transition-all duration-200',
             'bg-gray-700 hover:bg-gray-600 cursor-pointer',
             completedQuests.includes(quest.id) &&
               'bg-green-900 border border-green-600'
-            ]
-          }>
+          )}>
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <h3 className="text-white font-medium mb-1">
@@ -89,9 +91,7 @@ export function QuestList() {
               </div>
             </div>
           </div>
-          </div>
-        </div>
-      </div>
+        ))}
       </div>
     </div>
   );
