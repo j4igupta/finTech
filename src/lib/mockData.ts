@@ -153,6 +153,18 @@ export const mockPortfolioHistory = [
   { date: '2026-05-01', value: 123456 },
 ];
 
+// Mock leaderboard - simulates a leaderboard query across players
+export const mockLeaderboard = [
+  { id: 'p1', username: 'QuantQueen',   rank: 'Diamond', xp: 9820, netWorth: 412300, winRate: 78, streak: 14 },
+  { id: 'p2', username: 'TraderX',      rank: 'Platinum', xp: 8410, netWorth: 318900, winRate: 71, streak: 9 },
+  { id: 'p3', username: 'BullMarketBae', rank: 'Platinum', xp: 7990, netWorth: 287150, winRate: 69, streak: 11 },
+  { id: 'p4', username: 'AlphaSeeker',  rank: 'Gold',    xp: 6420, netWorth: 201800, winRate: 64, streak: 6 },
+  { id: 'p5', username: 'InvestorPro',  rank: 'Silver',  xp: 4180, netWorth: 123456, winRate: 58, streak: 5 },
+  { id: 'p6', username: 'DiamondHands', rank: 'Silver',  xp: 3950, netWorth: 117400, winRate: 55, streak: 4 },
+  { id: 'p7', username: 'YieldFarmer',  rank: 'Bronze',  xp: 2640, netWorth: 89200,  winRate: 49, streak: 3 },
+  { id: 'p8', username: 'NewbieNick',   rank: 'Bronze',  xp: 1280, netWorth: 41750,  winRate: 42, streak: 2 },
+];
+
 // Mock user data
 export const mockUser = {
   id: 'user1',

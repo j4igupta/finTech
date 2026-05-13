@@ -1,5 +1,8 @@
+'use client';
+
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import type { Provider } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 
 export default function SignUp() {
@@ -24,7 +27,7 @@ export default function SignUp() {
     router.push('/dashboard');
   };
 
-  const handleOAuth = async (provider: string) => {
+  const handleOAuth = async (provider: Provider) => {
     await supabase.auth.signInWithOAuth({
       provider,
       options: {

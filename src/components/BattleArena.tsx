@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { BattleEngine } from '@/lib/battleEngine';
 import { formatCountdown } from '@/lib/utils';
@@ -37,7 +39,9 @@ export function BattleArena() {
     newEngine.connect();
 
     // Cleanup: disconnect on unmount
-    return () => newEngine.disconnect();
+    return () => {
+      newEngine.disconnect();
+    };
   }, [battleId, engine]);
 
   // Calculate next countdown from events
@@ -46,7 +50,7 @@ export function BattleArena() {
     const nextEvent = sortedEvents.find((e) => new Date(e.timestamp) > new Date());
 
     if (nextEvent) {
-      const delta = new Date(nextEvent.timestamp) - new Date();
+      const delta = new Date(nextEvent.timestamp).getTime() - Date.now();
       setCountdown(formatCountdown(delta));
     } else {
       setCountdown('No upcoming events');
@@ -58,7 +62,7 @@ export function BattleArena() {
       const nextEvent = sortedEvents.find((e) => new Date(e.timestamp) > new Date());
 
       if (nextEvent) {
-        const delta = new Date(nextEvent.timestamp) - new Date();
+        const delta = new Date(nextEvent.timestamp).getTime() - Date.now();
         setCountdown(formatCountdown(delta));
       } else {
         setCountdown('No upcoming events');

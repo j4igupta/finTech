@@ -1,5 +1,8 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import type { Provider } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 
 export default function SignIn() {
@@ -9,11 +12,11 @@ export default function SignIn() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if user is already signed in and redirect to dashboard
-    const { data: { session } } = supabase.auth;
-    if (session) {
-      router.push('/dashboard');
-    }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.push('/dashboard');
+      }
+    });
   }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,7 +29,7 @@ export default function SignIn() {
     }
   };
 
-  const handleOAuth = async (provider: string) => {
+  const handleOAuth = async (provider: Provider) => {
     await supabase.auth.signInWithOAuth({
       provider,
       options: {
