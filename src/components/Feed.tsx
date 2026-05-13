@@ -1,3 +1,5 @@
+"use client";
+
 import { mockFeedItems } from '@/lib/mockData';
 import { FeedCard } from '@/components/FeedCard';
 
