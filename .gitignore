@@ -4,6 +4,7 @@ CLAUDE.md
 LESSONS.md
 .env
 .env.*
+.env.local
 node_modules
 .next
 tsconfig.tsbuildinfo
