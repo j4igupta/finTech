@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server';
 import { mockQuests } from '@/lib/mockData';
 
 // Simplified API route that doesn't require Supabase

@@ -1,3 +1,6 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import { mockAchievements } from '@/lib/mockData';
 
 export function ProfileAchievements() {

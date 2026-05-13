@@ -1,5 +1,8 @@
+'use client';
+
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import type { Provider } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 
 export default function SignUp() {
@@ -7,21 +10,30 @@ export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
-  const [error, setError] = useState<string |null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
     if (signUpError) {
       setError(signUpError.message);
-    } else {
-      // Create profile record
-      await supabase.from('profiles').upsert({
-        id: data.user?.id,
-        username,
-      });
-      router.push('/dashboard');
+      return;
     }
+    // Create profile record
+    await supabase.from('profiles').upsert({
+      id: data.user?.id,
+      username,
+    });
+    router.push('/dashboard');
+  };
+
+  const handleOAuth = async (provider: Provider) => {
+    await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/callback/${provider}`,
+      },
+    });
   };
 
   return (
@@ -53,6 +65,25 @@ export default function SignUp() {
         <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
           Sign Up
         </button>
+        <div className="mt-4 text-center text-sm text-gray-400">
+          Or sign up with:
+        </div>
+        <div className="grid grid-cols-2 gap-2 mt-2">
+          <button
+            type="button"
+            onClick={() => handleOAuth('google')}
+            className="p-2 bg-white rounded border text-gray-700 hover:bg-gray-200"
+          >
+            Google
+          </button>
+          <button
+            type="button"
+            onClick={() => handleOAuth('github')}
+            className="p-2 bg-white rounded border text-gray-700 hover:bg-gray-200"
+          >
+            GitHub
+          </button>
+        </div>
       </form>
     </div>
   );

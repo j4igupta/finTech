@@ -29,15 +29,16 @@ export class BattleEngine {
       const event: BattleEvent = payload.new as any; // new row contains the event data
       this.listeners.forEach((fn) => fn(event));
     });
-    const { error } = await this.channel.subscribe();
-    if (error) console.error('Realtime subscribe error', error);
+    this.channel.subscribe((status) => {
+      if (status === 'CHANNEL_ERROR') console.error('Realtime subscribe error', status);
+    });
   }
 
   /** Disconnect from the channel */
   async disconnect() {
     if (this.channel) {
-      const { error } = await this.channel.unsubscribe();
-      if (error) console.error('Realtime unsubscribe error', error);
+      const status = await this.channel.unsubscribe();
+      if (status !== 'ok') console.error('Realtime unsubscribe error', status);
       this.channel = null;
     }
   }
