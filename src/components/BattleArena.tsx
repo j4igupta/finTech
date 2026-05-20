@@ -42,7 +42,7 @@ export function BattleArena() {
     return () => {
       newEngine.disconnect();
     };
-  }, [battleId, engine]);
+  }, [battleId]); // <-- Removed 'engine' from here!
 
   // Calculate next countdown from events
   useEffect(() => {
@@ -113,7 +113,7 @@ export function BattleArena() {
           {events.map((e, i) => (
             <div key={i} className="text-sm text-gray-300 border-b border-gray-700 py-1">
               <strong>{e.type}</strong> at {new Date(e.timestamp).toLocaleTimeString()}
-              <div className="ml-2 text-sm">{e.payload.price}</div>
+              <div className="ml-2 text-sm">{e.payload?.price}</div>
             </div>
           ))}
         </div>

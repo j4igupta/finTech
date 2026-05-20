@@ -1,287 +1,213 @@
-1	"use client";
-2
-3	import { Crown, Medal, Flame, TrendingUp, ChevronUp, ChevronDown } from "lucide-react";
-4	import {
-5	  Table,
-6	  TableBody,
-7	  TableCell,
-8	  TableHead,
-9	  TableHeader,
-10	  TableRow,
-11	} from "@/components/ui/table";
-12	import { cn } from "@/lib/utils";
+// Leaderboard table component
+"use client";
 
-13	interface LeaderboardPlayer {
-14	  rank: number;
-15	  username: string;
-16	  avatar: string;
-17	  xp: number;
-18	  winStreak: number;
-19	  change: "up" | "down" | "same";
-20	  isCurrentUser?: boolean;
-21	}
+import { Crown, Medal, Flame, TrendingUp, ChevronUp, ChevronDown } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
-22	interface LeaderboardProps {
-23	  players: LeaderboardPlayer[];
-24	  className?: string;
-25	}
+interface LeaderboardPlayer {
+  rank: number;
+  username: string;
+  avatar: string;
+  xp: number;
+  winStreak: number;
+  change: "up" | "down" | "same";
+  isCurrentUser?: boolean;
+}
 
-26	// Rank badge component for top 3
-27	function RankBadge({ rank }: { rank: number }) {
-28	  if (rank === 1) {
-29	    return (
-30	      <div className="relative flex h-10 w-10 items-center justify-center">
-31	        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-yellow-400 via-yellow-500 to amber-600 animate-pulse-glow" />
-32	        <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-yellow-300 to-yellow-500 shadow-lg shadow-yellow-500/30">
-33	          <Crown className="h-4 w-4 text-yellow-900" />
-34	        </div>
-35	      </div>
-36	    );
-37	  }
+interface LeaderboardProps {
+  players: LeaderboardPlayer[];
+  className?: string;
+}
 
-38	  if (rank === 2) {
-39	    return (
-40	      <div className="relative flex h-10 w-10 items-center justify-center">
-41	        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 opacity-60" />
-42	        <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-slate-200 to-slate-400 shadow-lg shadow-slate-400/30">
-43	          <Medal className="h-4 w-4 text-slate-700" />
-44	        </div>
-45	      </div>
-46	    );
-47	  }
+// Rank badge component for top 3
+function RankBadge({ rank }: { rank: number }) {
+  if (rank === 1) {
+    return (
+      <div className="relative flex h-10 w-10 items-center justify-center">
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-yellow-400 via-yellow-500 to amber-600 animate-pulse-glow" />
+        <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-yellow-300 to-yellow-500 shadow-lg shadow-yellow-500/30">
+          <Crown className="h-4 w-4 text-yellow-900" />
+        </div>
+      </div>
+    );
+  }
+  if (rank === 2) {
+    return (
+      <div className="relative flex h-10 w-10 items-center justify-center">
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 opacity-60" />
+        <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-slate-200 to-slate-400 shadow-lg shadow-slate-400/30">
+          <Medal className="h-4 w-4 text-slate-700" />
+        </div>
+      </div>
+    );
+  }
+  if (rank === 3) {
+    return (
+      <div className="relative flex h-10 w-10 items-center justify-center">
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 opacity-60" />
+        <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-amber-700 shadow-lg shadow-amber-600/30">
+          <Medal className="h-4 w-4 text-amber-200" />
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="flex h-10 w-10 items-center justify-center">
+      <span className="text-lg font-bold text-muted-foreground">#{rank}</span>
+    </div>
+  );
+}
 
-48	  if (rank === 3) {
-49	    return (
-50	      <div className="relative flex h-10 w-10 items-center justify-center">
-51	        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 opacity-60" />
-52	        <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-amber-700 shadow-lg shadow-amber-600/30">
-53	          <Medal className="h-4 w-4 text-amber-200" />
-54	        </div>
-55	      </div>
-56	    );
-57	  }
+// Win streak badge
+function WinStreakBadge({ streak }: { streak: number }) {
+  if (streak === 0) return <span className="text-muted-foreground">-</span>;
+  let bgColor = "bg-secondary";
+  let textColor = "text-muted-foreground";
+  let borderColor = "border-border";
+  if (streak >= 10) {
+    bgColor = "bg-[#FF69B4]/20";
+    textColor = "text-[#FF69B4]";
+    borderColor = "border-[#FF69B4]/40";
+  } else if (streak >= 5) {
+    bgColor = "bg-[#1E90FF]/20";
+    textColor = "text-[#1E90FF]";
+    borderColor = "border-[#1E90FF]/40";
+  } else if (streak >= 3) {
+    bgColor = "bg-[#00FFAA]/20";
+    textColor = "text-[#00FFAA]";
+    borderColor = "border-[#00FFAA]/40";
+  }
+  return (
+    <div className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1", bgColor, borderColor)}>
+      <Flame className={cn("h-3.5 w-3.5", textColor)} />
+      <span className={cn("text-xs font-bold", textColor)}>{streak}</span>
+    </div>
+  );
+}
 
-58	  return (
-59	    <div className="flex h-10 w-10 items-center justify-center">
-60	      <span className="text-lg font-bold text-muted-foreground">#{rank}</span>
-61	    </div>
-62	  );
-63	}
+// Avatar with rank glow effect
+function PlayerAvatar({ src, rank, username }: { src: string; rank: number; username: string }) {
+  const glowClass =
+    rank === 1
+      ? "ring-2 ring-yellow-400 shadow-lg shadow-yellow-400/30"
+      : rank === 2
+      ? "ring-2 ring-slate-400 shadow-lg shadow-slate-400/20"
+      : rank === 3
+      ? "ring-2 ring-amber-600 shadow-lg shadow-amber-600/20"
+      : "ring-1 ring-border";
+  return (
+    <div className={cn("relative h-10 w-10 overflow-hidden rounded-full bg-secondary", glowClass)}>
+      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1E90FF]/30 to-[#FF69B4]/30 text-sm font-bold uppercase text-foreground">
+        {username.slice(0, 2)}
+      </div>
+    </div>
+  );
+}
 
-64	// Win streak badge
-65	function WinStreakBadge({ streak }: { streak: number }) {
-66	  if (streak === 0) return <span className="text-muted-foreground">-</span>;
+export function LeaderboardTable({ players, className }: LeaderboardProps) {
+  return (
+    <div className={cn("rounded-xl border border-border bg-card overflow-hidden", className)}>
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-border bg-gradient-to-r from-card via-[#1E90FF]/5 to-[#FF69B4]/5 p-5">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-[#1E90FF] to-[#FF69B4]">
+            <TrendingUp className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-foreground">Global Leaderboard</h3>
+            <p className="text-xs text-muted-foreground">Top traders this season</p>
+          </div>
+        </div>
+        <button className="text-xs font-medium text-[#1E90FF] hover:underline">View All</button>
+      </div>
 
-67	  let bgColor = "bg-secondary";
-68	  let textColor = "text-muted-foreground";
-69	  let borderColor = "border-border";
+      {/* Table */}
+      <Table>
+        <TableHeader>
+          <TableRow className="border-border hover:bg-transparent">
+            <TableHead className="w-16 text-center text-xs text-muted-foreground">Rank</TableHead>
+            <TableHead className="text-xs text-muted-foreground">Player</TableHead>
+            <TableHead className="text-right text-xs text-muted-foreground">XP</TableHead>
+            <TableHead className="text-center text-xs text-muted-foreground">Streak</TableHead>
+            <TableHead className="w-12 text-center text-xs text-muted-foreground"><span className="sr-only">Trend</span></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {players.map((player, index) => (
+            <TableRow key={player.rank} className={cn(
+              "border-border transition-all",
+              index % 2 === 0 ? "bg-muted/5" : "",
+              player.isCurrentUser && "bg-[#1E90FF]/10 hover:bg-[#1E90FF]/15 border-l-2 border-l-[#1E90FF]",
+              player.rank <= 3 && !player.isCurrentUser && "bg-gradient-to-r from-card to-secondary/30",
+              index === 0 && "border-t-0"
+            )}>
+              {/* Rank */}
+              <TableCell className="text-center p-2">
+                <div className="flex justify-center"><RankBadge rank={player.rank} /></div>
+              </TableCell>
 
-70	  if (streak >= 10) {
-71	    bgColor = "bg-[#FF69B4]/20";
-72	    textColor = "text-[#FF69B4]";
-73	    borderColor = "border-[#FF69B4]/40";
-74	  } else if (streak >= 5) {
-75	    bgColor = "bg-[#1E90FF]/20";
-76	    textColor = "text-[#1E90FF]";
-77	    borderColor = "border-[#1E90FF]/40";
-78	  } else if (streak >= 3) {
-79	    bgColor = "bg-[#00FFAA]/20";
-80	    textColor = "text-[#00FFAA]";
-81	    borderColor = "border-[#00FFAA]/40";
-82	  }
+              {/* Player info */}
+              <TableCell>
+                <div className="flex items-center gap-3">
+                  <PlayerAvatar src={player.avatar} rank={player.rank} username={player.username} />
+                  <div>
+                    <p className={cn(
+                      "font-medium",
+                      player.isCurrentUser && "text-[#1E90FF]",
+                      player.rank === 1 && "text-yellow-400",
+                      player.rank === 2 && "text-slate-300",
+                      player.rank === 3 && "text-amber-500"
+                    )}>
+                      {player.username}
+                      {player.isCurrentUser && <span className="ml-2 text-xs text-muted-foreground">(You)</span>}
+                    </p>
+                    {player.rank <= 3 && (
+                      <p className="text-xs text-muted-foreground">
+                        {player.rank === 1 ? "Champion" : player.rank === 2 ? "Elite" : "Veteran"}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </TableCell>
 
-83	  return (
-84	    <div
-85	      className={cn(
-86	        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1",
-87	        bgColor,
-88	        borderColor
-89	      )}
-90	    >
-91	      <Flame className={cn("h-3.5 w-3.5", textColor)} />
-92	      <span className={cn("text-xs font-bold", textColor)}>{streak}</span>
-93	    </div>
-94	  );
-95	}
+              {/* XP */}
+              <TableCell className="text-right">
+                <span className={cn(
+                  "font-mono font-bold",
+                  player.rank === 1
+                    ? "text-yellow-400"
+                    : player.rank === 2
+                    ? "text-slate-300"
+                    : player.rank === 3
+                    ? "text-amber-500"
+                    : "text-foreground"
+                )}>
+                  {player.xp.toLocaleString()}
+                </span>
+                <span className="ml-1 text-xs text-muted-foreground">XP</span>
+              </TableCell>
 
-96	// Avatar with rank glow effect
-97	function PlayerAvatar({
-98	  src,
-99	  rank,
-100	  username,
-101	}: {
-102	  src: string;
-103	  rank: number;
-104	  username: string;
-105	}) {
-106	  const glowClass =
-107	    rank === 1
-108	      ? "ring-2 ring-yellow-400 shadow-lg shadow-yellow-400/30"
-109	      : rank === 2
-110	      ? "ring-2 ring-slate-400 shadow-lg shadow-slate-400/20"
-111	      : rank === 3
-112	      ? "ring-2 ring-amber-600 shadow-lg shadow-amber-600/20"
-113	      : "ring-1 ring-border";
+              {/* Win streak */}
+              <TableCell className="text-center p-2"><WinStreakBadge streak={player.winStreak} /></TableCell>
 
-114	  return (
-115	    <div
-116	      className={cn(
-117	        "relative h-10 w-10 overflow-hidden rounded-full bg-secondary",
-118	        glowClass
-119	      )}
-120	    >
-121	      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1E90FF]/30 to-[#FF69B4]/30 text-sm font-bold uppercase text-foreground">
-122	        {username.slice(0, 2)}
-123	      </div>
-124	    </div>
-125	  );
-126	}
+              {/* Trend indicator */}
+              <TableCell className="text-center p-2">
+                {player.change === "up" && <ChevronUp className="mx-auto h-5 w-5 text-[#00FFAA]" />}
+                {player.change === "down" && <ChevronDown className="mx-auto h-5 w-5 text-destructive" />}
+                {player.change === "same" && <div className="mx-auto h-1 w-4 rounded-full bg-muted-foreground/30" />}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
 
-127	export function Leaderboard({ players, className }: LeaderboardProps) {
-128	  return (
-129	    <div
-130	      className={cn(
-131	        "rounded-xl border border-border bg-card overflow-hidden",
-132	        className
-133	      )}
-134	    >
-135	      {/* Header */}
-136	      <div className="flex items-center justify-between border-b border-border bg-gradient-to-r from-card via-[#1E90FF]/5 to-[#FF69B4]/5 p-5">
-137	        <div className="flex items-center gap-3">
-138	          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-[#1E90FF] to-[#FF69B4]">
-139	            <TrendingUp className="h-5 w-5 text-white" />
-140	          </div>
-141	          <div>
-142	            <h3 className="font-semibold text-foreground">Global Leaderboard</h3>
-143	            <p className="text-xs text-muted-foreground">Top traders this season</p>
-144	          </div>
-145	        </div>
-146	        <button className="text-xs font-medium text-[#1E90FF] hover:underline">
-147	          View All
-148	        </button>
-149	      </div>
-
-150	      {/* Table */}
-151	      <Table>
-152	        <TableHeader>
-153	          <TableRow className="border-border hover:bg-transparent">
-154	            <TableHead className="w-16 text-center text-xs text-muted-foreground">
-155	              Rank
-156	            </TableHead>
-157	            <TableHead className="text-xs text-muted-foreground">Player</TableHead>
-158	            <TableHead className="text-right text-xs text-muted-foreground">XP</TableHead>
-159	            <TableHead className="text-center text-xs text-muted-foreground">
-160	              Streak
-161	            </TableHead>
-162	            <TableHead className="w-12 text-center text-xs text-muted-foreground">
-163	              <span className="sr-only">Trend</span>
-164	            </TableHead>
-165	          </TableRow>
-166	        </TableHeader>
-167	        <TableBody>
-168	          {players.map((player, index) => (
-169	            <TableRow
-170	              key={player.rank}
-171	              className={cn(
-172	                "border-border transition-all",
-173	                player.isCurrentUser &&
-174	                  "bg-[#1E90FF]/10 hover:bg-[#1E90FF]/15 border-l-2 border-l-[#1E90FF]",
-175	                player.rank <= 3 &&
-176	                  !player.isCurrentUser &&
-177	                  "bg-gradient-to-r from-card to-secondary/30",
-178	                index === 0 && "border-t-0"
-179	              )}
-180	            >
-181	              {/* Rank */}
-182	              <TableCell className="text-center">
-183	                <div className="flex justify-center">
-184	                  <RankBadge rank={player.rank} />
-185	                </div>
-186	              </TableCell>
-
-187	              {/* Player info */}
-188	              <TableCell>
-189	                <div className="flex items-center gap-3">
-190	                  <PlayerAvatar
-191	                    src={player.avatar}
-192	                    rank={player.rank}
-193	                    username={player.username}
-194	                  />
-195	                  <div>
-196	                    <p
-197	                      className={cn(
-198	                        "font-medium",
-199	                        player.isCurrentUser && "text-[#1E90FF]",
-200	                        player.rank === 1 && "text-yellow-400",
-201	                        player.rank === 2 && "text-slate-300",
-202	                        player.rank === 3 && "text-amber-500"
-203	                      )}
-204	                    >
-205	                      {player.username}
-206	                      {player.isCurrentUser && (
-207	                        <span className="ml-2 text-xs text-muted-foreground">(You)</span>
-208	                      )}
-209	                    </p>
-210	                    {player.rank <= 3 && (
-211	                      <p className="text-xs text-muted-foreground">
-212	                        {player.rank === 1
-213	                          ? "Champion"
-214	                          : player.rank === 2
-215	                          ? "Elite"
-216	                          : "Veteran"}
-217	                      </p>
-218	                    )}
-219	                  </div>
-220	                </div>
-221	              </TableCell>
-
-222	              {/* XP */}
-223	              <TableCell className="text-right">
-224	                <span
-225	                  className={cn(
-226	                    "font-mono font-bold",
-227	                    player.rank === 1
-228	                      ? "text-yellow-400"
-229	                      : player.rank === 2
-230	                      ? "text-slate-300"
-231	                      : player.rank === 3
-232	                      ? "text-amber-500"
-233	                      : "text-foreground"
-234	                  )}
-235	                >
-236	                  {player.xp.toLocaleString()}
-237	                </span>
-238	                <span className="ml-1 text-xs text-muted-foreground">XP</span>
-239	              </TableCell>
-
-240	              {/* Win streak */}
-241	              <TableCell className="text-center">
-242	                <WinStreakBadge streak={player.winStreak} />
-243	              </TableCell>
-
-244	              {/* Trend indicator */}
-245	              <TableCell className="text-center">
-246	                {player.change === "up" && (
-247	                  <ChevronUp className="mx-auto h-5 w-5 text-[#00FFAA]" />
-248	                )}
-249	                {player.change === "down" && (
-250	                  <ChevronDown className="mx-auto h-5 w-5 text-destructive" />
-251	                )}
-252	                {player.change === "same" && (
-253	                  <div className="mx-auto h-1 w-4 rounded-full bg-muted-foreground/30" />
-254	                )}
-255	              </TableCell>
-256	            </TableRow>
-257	          ))}
-258	        </TableBody>
-259	      </Table>
-
-260	      {/* Footer with current user position if not in top list */}
-261	      <div className="border-t border-border bg-secondary/30 px-5 py-3">
-262	        <p className="text-center text-xs text-muted-foreground">
-263	          Season ends in <span className="font-medium text-[#FF69B4]">14 days</span>
-264	        </p>
-265	      </div>
-266	    </div>
-267	  );
-268	}
+      {/* Footer */}
+      <div className="border-t border-border bg-secondary/30 px-5 py-3">
+        <p className="text-center text-xs text-muted-foreground">
+          Season ends in <span className="font-medium text-[#FF69B4]">14 days</span>
+        </p>
+      </div>
+    </div>
+  );
+}

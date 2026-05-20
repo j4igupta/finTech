@@ -8,7 +8,7 @@ export default function Dashboard() {
   return (
     <>
       <Header />
-      <XPBar />
+      <XPBar currentXP={0} nextLevelXP={1000} />
       <main className="p-4">
         <Feed />
       </main>
