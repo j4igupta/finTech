@@ -3,7 +3,6 @@
 ## Pending Tasks
 
 - [ ] Polish UI animations and visual effects
-- [ ] Add leaderboard page implementation
 - [ ] Add cosmetics/prestige system
 - [ ] Implement seasonal events system
 - [ ] Add sound effects and audio hooks
