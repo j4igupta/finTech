@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell *)",
+      "Bash(Expand-Archive *)",
+      "PowerShell(Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory\\(\"C:\\\\Users\\\\pg\\\\Downloads\\\\gamified-financial-dashboard.zip\", \"C:\\\\Users\\\\pg\\\\financial-mmo-platform\\\\extracted\"\\))",
+      "Bash(npm run *)",
+      "Bash(dos2unix *)"
+    ]
+  }
+}
