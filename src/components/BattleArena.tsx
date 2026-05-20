@@ -1,111 +1,152 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BattleEngine } from '@/lib/battleEngine';
 import { formatCountdown } from '@/lib/utils';
 import { playSound } from '@/lib/sound';
 
+type TimelineEvent = { type: string; payload: any; timestamp: string };
+
 export function BattleArena() {
-  const [battleId] = useState(() => `battle-${Date.now()}`);
-  const [events, setEvents] = useState<{ type: string; payload: any; timestamp: string }[]>([]);
-  const [engine, setEngine] = useState<BattleEngine | null>(null);
-  const [countdown, setCountdown] = useState<string>('Starting battle...');
+  const [engine] = useState(() => new BattleEngine());
+  const [battleId, setBattleId] = useState<string | null>(null);
+  const [shareCode, setShareCode] = useState<string | null>(null);
+  const [joinInput, setJoinInput] = useState('');
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const [events, setEvents] = useState<TimelineEvent[]>([]);
+  const [countdown, setCountdown] = useState('No active battle');
 
   useEffect(() => {
-    // Initialize engine
-    const newEngine = new BattleEngine(battleId);
-    setEngine(newEngine);
+    const unsub = engine.onEvent((evt) => {
+      const ts = evt.payload?.timestamp ?? new Date().toISOString();
+      setEvents((prev) => [
+        ...prev,
+        { type: evt.type, payload: evt.payload, timestamp: new Date(ts).toISOString() },
+      ]);
 
-    // Connect to realtime
-    newEngine.onEvent((evt) => {
-      const eventData = {
-        type: evt.type,
-        payload: evt.payload,
-        timestamp: new Date(evt.payload.timestamp).toISOString()
-      };
-      setEvents(prev => [...prev, eventData]);
-
-      // Play sound for certain event types
-      if (evt.type === 'player_action') {
-        playSound('battle_action');
-      } else if (evt.type === 'end') {
-        playSound('battle_end');
-      } else if (evt.type === 'start') {
-        playSound('battle_start');
-      }
+      if (evt.type === 'player_action') playSound('battle_action');
+      else if (evt.type === 'end') playSound('battle_end');
+      else if (evt.type === 'start') playSound('battle_start');
     });
 
-    // Connect to BATTLE event channel
-    newEngine.connect();
-
-    // Cleanup: disconnect on unmount
     return () => {
-      newEngine.disconnect();
+      unsub();
+      engine.disconnect();
     };
-  }, [battleId, engine]);
+  }, [engine]);
 
-  // Calculate next countdown from events
   useEffect(() => {
-    const sortedEvents = events.slice().sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-    const nextEvent = sortedEvents.find((e) => new Date(e.timestamp) > new Date());
+    const tick = () => {
+      if (!battleId) {
+        setCountdown('No active battle');
+        return;
+      }
+      const next = events
+        .slice()
+        .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+        .find((e) => new Date(e.timestamp) > new Date());
 
-    if (nextEvent) {
-      const delta = new Date(nextEvent.timestamp).getTime() - Date.now();
-      setCountdown(formatCountdown(delta));
-    } else {
-      setCountdown('No upcoming events');
-    }
-
-    // Update every second
-    const interval = setInterval(() => {
-      const sortedEvents = events.slice().sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-      const nextEvent = sortedEvents.find((e) => new Date(e.timestamp) > new Date());
-
-      if (nextEvent) {
-        const delta = new Date(nextEvent.timestamp).getTime() - Date.now();
-        setCountdown(formatCountdown(delta));
+      if (next) {
+        setCountdown(formatCountdown(new Date(next.timestamp).getTime() - Date.now()));
       } else {
         setCountdown('No upcoming events');
       }
-    }, 1000);
-
-    // Cleanup interval
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [events]);
+  }, [events, battleId]);
 
-  // Handle battle actions
-  const handleStart = async () => {
-    if (!engine) return;
-    await engine.sendAction('createBattle', { userId: 'user1' });
+  const handleCreate = async () => {
+    const result = await engine.createBattle('user1');
+    if (result) {
+      setEvents([]);
+      setBattleId(result.battleId);
+      setShareCode(result.joinCode);
+      setJoinError(null);
+    }
   };
 
   const handleJoin = async () => {
-    if (!engine) return;
-    await engine.sendAction('joinBattle', { userId: 'user2' });
+    const code = joinInput.trim().toUpperCase();
+    if (!code) return;
+    const id = await engine.joinBattle(code, 'user2');
+    if (id) {
+      setEvents([]);
+      setBattleId(id);
+      setShareCode(code);
+      setJoinError(null);
+    } else {
+      setJoinError('Could not join — check the code and try again.');
+    }
   };
 
   const handleAction = async (action: 'buy' | 'sell') => {
-    if (!engine) return;
-    await engine.sendAction('playerAction', { userId: 'user1', action, delta: action === 'buy' ? 10 : -5 });
+    await engine.playerAction('user1', action, action === 'buy' ? 10 : -5);
   };
+
+  const inBattle = battleId !== null;
 
   return (
     <div className="bg-gray-800 p-4 rounded-lg shadow-md max-w-md mx-auto">
-      {/* Battle Controls */}
-      <div className="flex gap-2 mb-4">
-        <button onClick={handleStart} className="px-3 py-1 bg-primary text-white rounded">
-          Create Battle
-        </button>
-        <button onClick={handleJoin} className="px-3 py-1 bg-primary text-white rounded">
-          Join Battle
-        </button>
-        <button onClick={() => handleAction('buy')} className="px-3 py-1 bg-primary text-white rounded">
-          Buy
-        </button>
-        <button onClick={() => handleAction('sell')} className="px-3 py-1 bg-primary text-white rounded">
-          Sell
-        </button>
+      <div className="flex flex-col gap-2 mb-4">
+        <div className="flex gap-2">
+          <button
+            onClick={handleCreate}
+            disabled={inBattle}
+            className="px-3 py-1 bg-primary text-white rounded disabled:opacity-50"
+          >
+            Create Battle
+          </button>
+          <button
+            onClick={() => handleAction('buy')}
+            disabled={!inBattle}
+            className="px-3 py-1 bg-primary text-white rounded disabled:opacity-50"
+          >
+            Buy
+          </button>
+          <button
+            onClick={() => handleAction('sell')}
+            disabled={!inBattle}
+            className="px-3 py-1 bg-primary text-white rounded disabled:opacity-50"
+          >
+            Sell
+          </button>
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={joinInput}
+            onChange={(e) => setJoinInput(e.target.value.toUpperCase())}
+            placeholder="Join code (e.g. AB23CD)"
+            maxLength={6}
+            disabled={inBattle}
+            className="flex-1 px-2 py-1 bg-gray-900 text-white rounded text-sm font-mono tracking-widest disabled:opacity-50"
+          />
+          <button
+            onClick={handleJoin}
+            disabled={inBattle || !joinInput.trim()}
+            className="px-3 py-1 bg-primary text-white rounded disabled:opacity-50"
+          >
+            Join
+          </button>
+        </div>
+        {joinError && !inBattle && (
+          <div className="text-sm text-red-400">{joinError}</div>
+        )}
       </div>
+
+      {shareCode && (
+        <div className="text-sm text-white mb-1">
+          Share code:{' '}
+          <span className="font-mono font-bold tracking-widest text-primary">{shareCode}</span>
+        </div>
+      )}
+      {battleId && (
+        <div className="text-xs text-gray-400 mb-2 font-mono break-all">
+          Battle: {battleId}
+        </div>
+      )}
 
       <div className="mb-4">
         <h3 className="text-white font-semibold">Battle Timeline</h3>
@@ -113,17 +154,16 @@ export function BattleArena() {
           {events.map((e, i) => (
             <div key={i} className="text-sm text-gray-300 border-b border-gray-700 py-1">
               <strong>{e.type}</strong> at {new Date(e.timestamp).toLocaleTimeString()}
-              <div className="ml-2 text-sm">{e.payload.price}</div>
+              {e.payload?.price !== undefined && (
+                <div className="ml-2 text-sm">{e.payload.price}</div>
+              )}
             </div>
           ))}
         </div>
       </div>
 
       <div className="text-lg text-white mt-2">
-        {/* Countdown Timer */}
-        <div className="text-gray-300">
-          {countdown}
-        </div>
+        <div className="text-gray-300">{countdown}</div>
       </div>
     </div>
   );
