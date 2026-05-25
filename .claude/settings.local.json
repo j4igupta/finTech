@@ -8,7 +8,8 @@
       "Bash(dos2unix *)",
       "Bash(unzip *)",
       "Bash(npx next *)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(xcopy C:\\\\Users\\\\pg\\\\financial-mmo-platform\\\\extracted\\\\components\\\\ui *)"
     ]
   }
 }

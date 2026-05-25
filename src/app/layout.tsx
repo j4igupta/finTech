@@ -19,7 +19,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={cn("dark bg-gray-900 text-white", "font-sans", geist.variable)} suppressHydrationWarning>
-      <head />
+      <head>
+          <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet" />
+        </head>
       <body className="min-h-screen flex flex-col">
         <Providers>
           <Header />

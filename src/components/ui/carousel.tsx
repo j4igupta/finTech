@@ -1,9 +1,10 @@
 'use client'
 
 import * as React from 'react'
-import useEmblaCarousel, {
-  type UseEmblaCarouselType,
-} from 'embla-carousel-react'
+// Stubbed embla carousel hook
+const useEmblaCarousel = (opts?: any, plugins?: any) => [null as any, null as any];
+// Types placeholder
+type UseEmblaCarouselType = [any, any];
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
