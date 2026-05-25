@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server';
-import { mockFeedItems } from '@/lib/mockData';
+import { getFeedItems } from '@/lib/realData';
+import { NextResponse } from 'next/server';
 
 export async function GET() {
-  // In a real app replace mock data with a Supabase query
-  return NextResponse.json(mockFeedItems);
+  try {
+    const items = await getFeedItems();
+    return NextResponse.json(items);
+  } catch (e) {
+    console.error('Error fetching feed items', e);
+    return NextResponse.json({ error: 'Failed to fetch feed' }, { status: 500 });
+  }
 }

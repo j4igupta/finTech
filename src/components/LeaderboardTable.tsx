@@ -4,6 +4,7 @@
 import { Crown, Medal, Flame, TrendingUp, ChevronUp, ChevronDown } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 interface LeaderboardPlayer {
   rank: number;
@@ -119,7 +120,7 @@ export function LeaderboardTable({ players, className }: LeaderboardProps) {
             <p className="text-xs text-muted-foreground">Top traders this season</p>
           </div>
         </div>
-        <button className="text-xs font-medium text-[#1E90FF] hover:underline">View All</button>
+        <Link href="/leaderboard" className="text-xs font-medium text-[#1E90FF] hover:underline">View All</Link>
       </div>
 
       {/* Table */}

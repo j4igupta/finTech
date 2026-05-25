@@ -1,16 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { mockRecentActivity } from '@/lib/mockData';
+import { getRecentActivity } from '@/lib/realData';
 
 export function ProfileActivity() {
-  const [activities, setActivities] = useState(mockRecentActivity);
+  const [activities, setActivities] = useState<any[]>([]);
 
   useEffect(() => {
-    // Simulate fetching from API
-    setTimeout(() => {
-      setActivities(mockRecentActivity);
-    }, 500);
+    getRecentActivity();
+    setActivities(getRecentActivity());
   }, []);
 
   return (

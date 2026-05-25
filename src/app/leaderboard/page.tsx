@@ -33,15 +33,11 @@ const samplePlayers = [
     isCurrentUser: true,
   },
   // Additional placeholder entries
-  ...Array.from({ length: 5 }, (_, i) => ({
-    rank: i + 4,
-    username: `Player${i + 4}`,
-    avatar: `/avatars/default.png`,
-    xp: Math.floor(Math.random() * 5000) + 3000,
-    winStreak: Math.floor(Math.random() * 5),
-    change: (['up', 'down', 'same'] as const)[Math.floor(Math.random() * 3)],
-    isCurrentUser: false,
-  })),
+  { rank: 4, username: 'Player4', avatar: '/avatars/default.png', xp: 3500, winStreak: 2, change: 'up' as const, isCurrentUser: false },
+    { rank: 5, username: 'Player5', avatar: '/avatars/default.png', xp: 3400, winStreak: 1, change: 'down' as const, isCurrentUser: false },
+    { rank: 6, username: 'Player6', avatar: '/avatars/default.png', xp: 3300, winStreak: 0, change: 'same' as const, isCurrentUser: false },
+    { rank: 7, username: 'Player7', avatar: '/avatars/default.png', xp: 3200, winStreak: 3, change: 'up' as const, isCurrentUser: false },
+    { rank: 8, username: 'Player8', avatar: '/avatars/default.png', xp: 3100, winStreak: 2, change: 'down' as const, isCurrentUser: false }
 ];
 
 export default function LeaderboardPage() {

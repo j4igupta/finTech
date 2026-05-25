@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowUpRight, ArrowDownRight, Bitcoin, DollarSign, TrendingUp } from "lucide-react";
+import Link from "next/link";
 
 interface Asset {
   id: string;
@@ -27,7 +28,7 @@ export function HoldingsList({ assets }: HoldingsListProps) {
     <div className="rounded-xl border border-border bg-card p-5">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold">Holdings</h3>
-        <button className="text-xs text-[#1E90FF] hover:underline">View All</button>
+        <Link href="/holdings" className="text-xs text-[#1E90FF] hover:underline">View All</Link>
       </div>
 
       <div className="space-y-3">

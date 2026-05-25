@@ -7,7 +7,7 @@ import { AICoachChat } from "@/components/ai-coach-chat";
 import { DailyQuests } from "@/components/daily-quests";
 import { HoldingsList } from "@/components/holdings-list";
 import { Leaderboard } from "@/components/leaderboard";
-import { FlashBattle } from "@/components/FlashBattle";
+import { FlashBattle } from "@/components/flash-battle";
 import { PlayerProfileCard } from "@/components/player-profile-card";
 import { usePortfolio } from "@/hooks/usePortfolio";
 import { useQuests } from "@/hooks/useQuests";

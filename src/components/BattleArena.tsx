@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import { useState, useEffect } from "react";
-import { FlashBattle } from "@/components/FlashBattle";
+import { FlashBattle } from "@/components/flash-battle";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -11,7 +11,11 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 
 export function BattleArena() {
-  const [battleId] = useState(() => `battle-${Date.now()}`);
+  const [battleId, setBattleId] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    setBattleId(`battle-${Date.now()}`);
+  }, []);
   const [events, setEvents] = React.useState<Array<{ type: string; payload: any; timestamp: string }>>([]);
   const [countdown, setCountdown] = React.useState("Starting battle...");
   const [progress, setProgress] = React.useState(0);
