@@ -40,7 +40,17 @@ const samplePlayers = [
     { rank: 8, username: 'Player8', avatar: '/avatars/default.png', xp: 3100, winStreak: 2, change: 'down' as const, isCurrentUser: false }
 ];
 
+import ProtectedRoute from '@/components/ProtectedRoute';
+
 export default function LeaderboardPage() {
+  return (
+    <ProtectedRoute>
+      <LeaderboardContent />
+    </ProtectedRoute>
+  );
+}
+
+function LeaderboardContent() {
   return (
     <>
       <Header />

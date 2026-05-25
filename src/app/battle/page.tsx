@@ -1,7 +1,17 @@
 import { Header } from '@/components/Header';
 import { BattleArena } from '@/components/BattleArena';
 
+import ProtectedRoute from '@/components/ProtectedRoute';
+
 export default function BattlePage() {
+  return (
+    <ProtectedRoute>
+      <BattleContent />
+    </ProtectedRoute>
+  );
+}
+
+function BattleContent() {
   return (
     <>
       <Header />

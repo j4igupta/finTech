@@ -15,7 +15,17 @@ import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { useHoldings } from "@/hooks/useHoldings";
 import { useXP } from "@/hooks/useXP"; // optional hook for XP progress
 
+import ProtectedRoute from '@/components/ProtectedRoute';
+
 export default function Dashboard() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
+  );
+}
+
+function DashboardContent() {
   // Real‑time data from Supabase
   const portfolio = usePortfolio();
   const quests = useQuests();

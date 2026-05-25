@@ -4,7 +4,17 @@ import { ProfileActivity } from '@/components/ProfileActivity';
 import { ProfileAchievements } from '@/components/ProfileAchievements';
 import { CoachChat } from '@/components/CoachChat';
 
+import ProtectedRoute from '@/components/ProtectedRoute';
+
 export default function ProfilePage() {
+  return (
+    <ProtectedRoute>
+      <ProfileContent />
+    </ProtectedRoute>
+  );
+}
+
+function ProfileContent() {
   return (
     <>
       <Header />

@@ -34,7 +34,17 @@ const sampleQuests = [
   },
 ];
 
+import ProtectedRoute from '@/components/ProtectedRoute';
+
 export default function QuestsPage() {
+  return (
+    <ProtectedRoute>
+      <QuestsContent />
+    </ProtectedRoute>
+  );
+}
+
+function QuestsContent() {
   return (
     <>
       <Header />

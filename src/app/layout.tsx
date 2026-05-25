@@ -1,5 +1,6 @@
 import '@/styles/globals.css';
 import { Providers } from '@/lib/providers';
+import { AuthProvider } from '@/components/AuthProvider';
 import { NavBar } from '@/components/NavBar';
 import { Header } from '@/components/Header';
 import { Geist } from "next/font/google";
@@ -23,11 +24,13 @@ export default function RootLayout({
           <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet" />
         </head>
       <body className="min-h-screen flex flex-col">
-        <Providers>
-          <Header />
-          <NavBar />
-          {children}
-        </Providers>
+        <AuthProvider>
+          <Providers>
+            <Header />
+            <NavBar />
+            {children}
+          </Providers>
+        </AuthProvider>
       </body>
     </html>
   );
