@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getFeedItems } from '@/lib/realData';
-import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {

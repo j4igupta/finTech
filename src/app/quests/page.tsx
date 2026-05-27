@@ -2,6 +2,9 @@ import { Header } from '@/components/Header';
 import { QuestList } from '@/components/QuestList';
 
 const sampleQuests = [
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  // Ensure literal types for icons
+
   {
     id: "q1",
     title: "Trade 5 stocks",
@@ -10,7 +13,7 @@ const sampleQuests = [
     progress: 2,
     total: 5,
     completed: false,
-    icon: "flame",
+    icon: "flame" as const,
   },
   {
     id: "q2",
@@ -20,7 +23,7 @@ const sampleQuests = [
     progress: 1,
     total: 1,
     completed: true,
-    icon: "target",
+    icon: "target" as const,
   },
   {
     id: "q3",

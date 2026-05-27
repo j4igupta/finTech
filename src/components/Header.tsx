@@ -4,6 +4,18 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { NetWorth } from '@/components/NetWorth';
 import { Streaks } from '@/components/Streaks';
+import { useAuth } from '@/components/AuthProvider';
+import { supabase } from '@/lib/supabaseClient';
+import { useRouter } from 'next/navigation';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 // 1. Create a custom motion-enabled Next.js Link component
 const MotionLink = motion(Link);

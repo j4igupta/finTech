@@ -48,7 +48,7 @@ export default function SignInPage() {
     handleSubmit,
     getValues,
     formState: { errors, isSubmitting },
-  } = useForm<SignInValues>({
+  } = useForm({
     resolver: zodResolver(signInSchema),
     defaultValues: { email: "", password: "" },
   });

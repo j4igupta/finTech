@@ -48,7 +48,7 @@ export default function SignUpPage() {
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
-  } = useForm<SignUpValues>({
+  } = useForm({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
       email: "",

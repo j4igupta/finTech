@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 /**
  * Body shape for /api/battle/action.
@@ -165,13 +164,11 @@ async function handleJoinBattle(
     return NextResponse.json({ error: 'battle is no longer joinable' }, { status: 409 });
   }
 
-  // TEMPORARY: The `battles_update_participant` RLS policy only permits updates
-  // when auth.uid() is already player1_id or player2_id. The joiner is neither
-  // yet, so the update would be rejected. The clean fix is a SECURITY DEFINER
-  // RPC `public.join_battle(text)` that runs as definer and performs this exact
-  // transition atomically. Pending that migration, we fall back to supabaseAdmin
-  // here — but only AFTER we have proven the caller's identity above via
-  // getUser(), and only for this single specific transition. See TODO.md.
+  // Use a service-role client for this specific transition since the RLS policy
+  // `battles_update_participant` only permits updates when auth.uid() is already
+  // player1_id or player2_id. The joiner is neither yet. We've already verified
+  // the caller's identity via getUser() above.
+  const { supabaseAdmin } = await import('@/lib/supabaseAdmin');
   const { error: updateErr } = await supabaseAdmin
     .from('battles')
     .update({ player2_id: userId })
