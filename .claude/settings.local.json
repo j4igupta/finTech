@@ -9,7 +9,10 @@
       "Bash(unzip *)",
       "Bash(npx next *)",
       "Bash(npm install *)",
-      "Bash(xcopy C:\\\\Users\\\\pg\\\\financial-mmo-platform\\\\extracted\\\\components\\\\ui *)"
+      "Bash(xcopy C:\\\\Users\\\\pg\\\\financial-mmo-platform\\\\extracted\\\\components\\\\ui *)",
+      "Bash(npm view *)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx|js\\)$\")",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")"
     ]
   }
 }
