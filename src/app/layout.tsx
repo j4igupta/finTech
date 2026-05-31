@@ -1,8 +1,7 @@
 import '@/styles/globals.css';
 import { Providers } from '@/lib/providers';
 import { AuthProvider } from '@/components/AuthProvider';
-import { NavBar } from '@/components/NavBar';
-import { Header } from '@/components/Header';
+import { AppChrome } from '@/components/AppChrome';
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 
@@ -26,8 +25,7 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col">
         <AuthProvider>
           <Providers>
-            <Header />
-            <NavBar />
+            <AppChrome />
             {children}
           </Providers>
         </AuthProvider>

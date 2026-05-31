@@ -5,8 +5,9 @@ import { createClient } from '@/lib/supabase/server';
  * Body shape for /api/battle/action.
  *
  * Notably, there is NO `userId` field — the server derives the authenticated
- * user from the request cookies via supabase.auth.getUser(). Anything the
- * client claims about its own identity is ignored.
+ * user from the request cookies via supabase.auth.getUser(), and the database
+ * RPCs re-derive it via auth.uid(). Anything the client claims about its own
+ * identity is ignored.
  */
 type BattleActionBody =
   | { action: 'createBattle'; battleId?: string; payload?: Record<string, unknown> }
@@ -24,8 +25,8 @@ type BattleActionBody =
 
 export async function POST(req: Request) {
   // Server-side auth check: derive user identity from cookies, never from the
-  // request body. RLS (Box 2) gates DB access, but we also fail fast at the
-  // edge with a clean 401 when there's no session.
+  // request body. The RPCs gate DB access via auth.uid(), but we also fail fast
+  // at the edge with a clean 401 when there's no session.
   const supabase = await createClient();
   const {
     data: { user },
@@ -50,17 +51,33 @@ export async function POST(req: Request) {
     case 'createBattle':
       return handleCreateBattle(supabase, user.id);
     case 'joinBattle':
-      return handleJoinBattle(supabase, user.id, body.payload);
+      return handleJoinBattle(supabase, body.payload);
     case 'playerAction':
-      return handlePlayerAction(supabase, user.id, body.battleId, body.payload);
+      return handlePlayerAction(supabase, body.battleId, body.payload);
     case 'endBattle':
-      return handleEndBattle(supabase, user.id, body.battleId);
+      return handleEndBattle(supabase, body.battleId);
     default:
       return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
   }
 }
 
 type AuthedSupabase = Awaited<ReturnType<typeof createClient>>;
+
+/** Map a Postgres/RPC error (SQLSTATE in `code`) to an HTTP status + message. */
+function rpcError(error: { code?: string; message?: string }): NextResponse {
+  const map: Record<string, number> = {
+    '28000': 401, // not authenticated
+    '42501': 403, // forbidden (not a participant)
+    P0001: 400, // cannot join your own battle
+    P0002: 409, // battle no longer joinable / already full
+    P0003: 404, // battle not found
+    P0010: 400, // invalid action
+    P0011: 409, // battle not active
+    P0012: 409, // battle has ended
+  };
+  const status = (error.code && map[error.code]) || 500;
+  return NextResponse.json({ error: error.message ?? 'Battle action failed' }, { status });
+}
 
 const JOIN_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 function generateJoinCode(): string {
@@ -72,13 +89,16 @@ function generateJoinCode(): string {
 }
 
 async function handleCreateBattle(supabase: AuthedSupabase, userId: string) {
-  // Insert with a fresh join_code; retry on the (unlikely) unique-violation collision.
+  // Insert with a fresh join_code; retry on the (unlikely) unique-violation
+  // collision. The battle starts in 'waiting' (the column default) and only
+  // becomes 'active' when an opponent joins via the join_battle RPC — that
+  // transition is what lets the open-lobby RLS policy expose it to a joiner.
   let battle: { id: string; join_code: string } | null = null;
   for (let attempt = 0; attempt < 5; attempt++) {
     const candidate = generateJoinCode();
     const { data, error } = await supabase
       .from('battles')
-      .insert({ player1_id: userId, join_code: candidate })
+      .insert({ player1_id: userId, join_code: candidate, status: 'waiting' })
       .select('id, join_code')
       .single();
 
@@ -94,103 +114,36 @@ async function handleCreateBattle(supabase: AuthedSupabase, userId: string) {
     return NextResponse.json({ error: 'Could not allocate join code' }, { status: 500 });
   }
 
-  const newBattleId = battle.id;
-  const joinCode = battle.join_code;
-
-  await supabase.from('battle_events').insert({
-    battle_id: newBattleId,
-    type: 'start',
-    payload: { timestamp: new Date().toISOString() },
-  });
-
-  const now = Date.now();
-  const events = [];
-  for (let i = 1; i <= 3; i++) {
-    const eventTime = new Date(now + i * 60_000);
-    events.push({
-      battle_id: newBattleId,
-      type: 'price_update',
-      payload: {
-        price: 100 + i * 5,
-        timestamp: eventTime.toISOString(),
-      },
-    });
-  }
-  await supabase.from('battle_events').insert(events);
-
-  const endTime = new Date(now + 4 * 60_000).toISOString();
-  await supabase
-    .from('battles')
-    .update({ status: 'active', start_time: new Date().toISOString(), end_time: endTime })
-    .eq('id', newBattleId);
-
-  return NextResponse.json({ battleId: newBattleId, joinCode }, { status: 200 });
+  return NextResponse.json({ battleId: battle.id, joinCode: battle.join_code }, { status: 200 });
 }
 
 async function handleJoinBattle(
   supabase: AuthedSupabase,
-  userId: string,
   payload: { joinCode?: string } | undefined
 ) {
-  const joinCode =
-    typeof payload?.joinCode === 'string' ? payload.joinCode.toUpperCase() : null;
+  const joinCode = typeof payload?.joinCode === 'string' ? payload.joinCode.trim() : '';
   if (!joinCode) {
     return NextResponse.json({ error: 'Missing joinCode' }, { status: 400 });
   }
 
-  // Find the open lobby via the per-request authenticated client. RLS policy
-  // `battles_select_open_lobby` lets ANY signed-in user see a battle whose
-  // status='waiting' AND player2_id IS NULL — even though they are not yet a
-  // player on it. That's the entire point of the policy.
-  const { data: battle, error: fetchErr } = await supabase
-    .from('battles')
-    .select('id, player1_id, player2_id, status')
-    .eq('join_code', joinCode)
-    .maybeSingle();
-
-  if (fetchErr) {
-    return NextResponse.json({ error: fetchErr.message }, { status: 500 });
-  }
-  if (!battle) {
-    return NextResponse.json({ error: 'Battle not found' }, { status: 404 });
-  }
-  if (battle.player2_id) {
-    return NextResponse.json({ error: 'Battle already full' }, { status: 400 });
-  }
-  if (battle.player1_id === userId) {
-    return NextResponse.json({ error: 'Cannot join your own battle' }, { status: 400 });
-  }
-  if (battle.status !== 'active') {
-    return NextResponse.json({ error: 'battle is no longer joinable' }, { status: 409 });
+  // Atomic claim of the open lobby. The RPC self-authorizes via auth.uid() and
+  // performs the waiting->active transition in a single UPDATE, so two racing
+  // joiners cannot both succeed.
+  const { data, error } = await supabase.rpc('join_battle', { p_join_code: joinCode });
+  if (error) {
+    return rpcError(error);
   }
 
-  // Use a service-role client for this specific transition since the RLS policy
-  // `battles_update_participant` only permits updates when auth.uid() is already
-  // player1_id or player2_id. The joiner is neither yet. We've already verified
-  // the caller's identity via getUser() above.
-  const { supabaseAdmin } = await import('@/lib/supabaseAdmin');
-  const { error: updateErr } = await supabaseAdmin
-    .from('battles')
-    .update({ player2_id: userId })
-    .eq('id', battle.id)
-    .eq('status', 'active')
-    .is('player2_id', null);
-
-  if (updateErr) {
-    return NextResponse.json({ error: updateErr.message }, { status: 500 });
-  }
-
-  return NextResponse.json({ joined: true, battleId: battle.id }, { status: 200 });
+  return NextResponse.json({ joined: true, battleId: data as string }, { status: 200 });
 }
 
 async function handlePlayerAction(
   supabase: AuthedSupabase,
-  userId: string,
   battleId: string | undefined,
   payload: { action?: 'buy' | 'sell'; delta?: number } | undefined
 ) {
   const action = payload?.action;
-  const delta = payload?.delta ?? 0;
+  const delta = Math.trunc(payload?.delta ?? 0);
 
   if (!battleId || !action) {
     return NextResponse.json({ error: 'Missing battleId or action' }, { status: 400 });
@@ -198,102 +151,49 @@ async function handlePlayerAction(
   if (!['buy', 'sell'].includes(action)) {
     return NextResponse.json({ error: 'Invalid action type' }, { status: 400 });
   }
-
-  // Defense in depth: confirm the caller is a player on this battle and the
-  // battle is active. With RLS this is mostly redundant on the read, but the
-  // explicit guard lets us return 403 instead of a silent zero-rows update.
-  const { data: battleRow, error: lookupErr } = await supabase
-    .from('battles')
-    .select('id, player1_id, player2_id, status')
-    .eq('id', battleId)
-    .maybeSingle();
-
-  if (lookupErr) {
-    return NextResponse.json({ error: lookupErr.message }, { status: 500 });
-  }
-  if (!battleRow) {
-    return NextResponse.json({ error: 'forbidden' }, { status: 403 });
-  }
-  if (battleRow.player1_id !== userId && battleRow.player2_id !== userId) {
-    return NextResponse.json({ error: 'forbidden' }, { status: 403 });
-  }
-  if (battleRow.status !== 'active') {
-    return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  if (!Number.isFinite(delta) || Math.abs(delta) > 1_000_000) {
+    return NextResponse.json({ error: 'Invalid delta' }, { status: 400 });
   }
 
-  await supabase.from('battle_events').insert({
-    battle_id: battleId,
-    type: 'player_action',
-    payload: { user_id: userId, action, delta },
+  // The RPC verifies participant + active + not-expired, and atomically adds
+  // delta to the ACTING player's own score (so you can never score for your
+  // opponent, and concurrent actions don't clobber each other).
+  const { data, error } = await supabase.rpc('apply_battle_action', {
+    p_battle_id: battleId,
+    p_action: action,
+    p_delta: delta,
   });
+  if (error) {
+    return rpcError(error);
+  }
 
-  const scoreColumn = action === 'buy' ? 'player1_score' : 'player2_score';
-  const { data: current } = await supabase
-    .from('battles')
-    .select(scoreColumn)
-    .eq('id', battleId)
-    .single();
-
-  const currentScore = (current as Record<string, number> | null)?.[scoreColumn] ?? 0;
-
-  await supabase
-    .from('battles')
-    .update({ [scoreColumn]: currentScore + delta })
-    .eq('id', battleId);
-
-  return NextResponse.json({ ok: true, action, delta }, { status: 200 });
+  return NextResponse.json({ ok: true, action, delta, score: data as number }, { status: 200 });
 }
 
-async function handleEndBattle(
-  supabase: AuthedSupabase,
-  userId: string,
-  battleId: string | undefined
-) {
+async function handleEndBattle(supabase: AuthedSupabase, battleId: string | undefined) {
   if (!battleId) {
     return NextResponse.json({ error: 'Missing battleId' }, { status: 400 });
   }
 
-  const { data: battle, error: fetchErr } = await supabase
-    .from('battles')
-    .select('player1_id, player2_id, player1_score, player2_score, status')
-    .eq('id', battleId)
-    .maybeSingle();
-
-  if (fetchErr) {
-    return NextResponse.json({ error: fetchErr.message }, { status: 500 });
-  }
-  if (!battle) {
-    return NextResponse.json({ error: 'forbidden' }, { status: 403 });
-  }
-  if (battle.player1_id !== userId && battle.player2_id !== userId) {
-    return NextResponse.json({ error: 'forbidden' }, { status: 403 });
-  }
-  if (battle.status !== 'active') {
-    return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  // The RPC resolves the winner, awards XP to both profiles, and marks the
+  // battle ended — idempotently, so a double-call won't double-award.
+  const { data, error } = await supabase.rpc('end_battle', { p_battle_id: battleId });
+  if (error) {
+    return rpcError(error);
   }
 
-  const player1Score = battle.player1_score ?? 0;
-  const player2Score = battle.player2_score ?? 0;
-
-  const endTime = new Date().toISOString();
-  await supabase.from('battle_events').insert({
-    battle_id: battleId,
-    type: 'end',
-    payload: {
-      winner: null,
-      player1_score: player1Score,
-      player2_score: player2Score,
-      timestamp: endTime,
-    },
-  });
-
-  await supabase
-    .from('battles')
-    .update({ status: 'ended', end_time: endTime })
-    .eq('id', battleId);
-
+  const result = data as {
+    player1_score: number;
+    player2_score: number;
+    winner: string | null;
+  };
   return NextResponse.json(
-    { ended: true, battleId, scores: { player1_score: player1Score, player2_score: player2Score } },
+    {
+      ended: true,
+      battleId,
+      winner: result.winner,
+      scores: { player1_score: result.player1_score, player2_score: result.player2_score },
+    },
     { status: 200 }
   );
 }

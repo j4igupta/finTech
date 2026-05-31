@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     });
     return () => {
-      listener?.unsubscribe();
+      listener?.subscription.unsubscribe();
     };
   }, [router]);
 

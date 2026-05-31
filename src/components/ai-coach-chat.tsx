@@ -12,7 +12,7 @@ interface Message {
 
 const suggestions = [
   "How can I grow my portfolio?",
-  "What&apos;s my risk level?",
+  "What's my risk level?",
   "Tips for earning more XP?",
 ];
 
@@ -23,7 +23,7 @@ export function AICoachChat() {
       id: "1",
       role: "assistant",
       content:
-        "Hey champion! 🎮 I&apos;m your AI finance coach. Ready to level up your investing game? Ask me anything about your portfolio, strategies, or how to earn more XP!",
+        "Hey champion! 🎮 I'm your AI finance coach. Ready to level up your investing game? Ask me anything about your portfolio, strategies, or how to earn more XP!",
     },
   ]);
   const [input, setInput] = useState("");
@@ -39,36 +39,49 @@ export function AICoachChat() {
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    const trimmed = input.trim();
+    if (!trimmed || isTyping) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: input,
+      content: trimmed,
     };
+
+    // History sent to the model (exclude the just-added message; the API appends it).
+    const history = messages.map((m) => ({ role: m.role, content: m.content }));
 
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const responses = [
-        "Great question! 💡 Based on your portfolio, I&apos;d recommend diversifying into tech and green energy. This could boost your XP by completing the &apos;Diversification Quest&apos;!",
-        "Looking at your risk profile, you&apos;re playing it safe - which is smart! 🛡️ Want me to suggest some low-risk, high-reward opportunities?",
-        "You&apos;re on fire! 🔥 Your weekly trading streak is at 5 days. Keep it up for a bonus 500 XP reward!",
-        "Pro tip: Set up recurring investments to unlock the &apos;Consistency Badge&apos; and earn passive XP every month! 🏆",
-      ];
+    try {
+      const res = await fetch("/api/coach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: trimmed, history }),
+      });
+      const data = await res.json().catch(() => ({}));
+      const content = res.ok
+        ? data.reply
+        : data.error || "Something went wrong reaching the coach.";
 
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: responses[Math.floor(Math.random() * responses.length)],
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
+      setMessages((prev) => [
+        ...prev,
+        { id: (Date.now() + 1).toString(), role: "assistant", content },
+      ]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: "I couldn't connect right now. Check your connection and try again.",
+        },
+      ]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -167,10 +180,10 @@ export function AICoachChat() {
             {suggestions.map((suggestion, i) => (
               <button
                 key={i}
-                onClick={() => setInput(suggestion.replace(/&apos;/g, "'"))}
+                onClick={() => setInput(suggestion)}
                 className="flex-shrink-0 rounded-full border border-border bg-secondary/50 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-[#1E90FF]/50 hover:text-foreground"
               >
-                {suggestion.replace(/&apos;/g, "'")}
+                {suggestion}
               </button>
             ))}
           </div>

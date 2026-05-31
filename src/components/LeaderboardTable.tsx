@@ -26,7 +26,7 @@ function RankBadge({ rank }: { rank: number }) {
   if (rank === 1) {
     return (
       <div className="relative flex h-10 w-10 items-center justify-center">
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-yellow-400 via-yellow-500 to amber-600 animate-pulse-glow" />
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-yellow-400 via-yellow-500 to-amber-600 animate-pulse-glow" />
         <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-yellow-300 to-yellow-500 shadow-lg shadow-yellow-500/30">
           <Crown className="h-4 w-4 text-yellow-900" />
         </div>
@@ -100,7 +100,7 @@ function PlayerAvatar({ src, rank, username }: { src: string; rank: number; user
   return (
     <div className={cn("relative h-10 w-10 overflow-hidden rounded-full bg-secondary", glowClass)}>
       <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1E90FF]/30 to-[#FF69B4]/30 text-sm font-bold uppercase text-foreground">
-        {username.slice(0, 2)}
+        {(username || "??").slice(0, 2)}
       </div>
     </div>
   );

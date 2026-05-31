@@ -37,7 +37,7 @@ interface FlashBattleProps {
 export function FlashBattle({
   battleId,
   onAction,
-  player1 = { username: useAuth().user?.username || "Guest", avatar: useAuth().user?.avatar || "/avatars/default.png", level: useAuth().user?.level || 1, score: useAuth().user?.score || 0 },
+  player1 = { username: "You", avatar: "", level: 1, score: 0 },
   player2 = { username: "Opponent", avatar: "", level: 1, score: 0 },
   question = { id: "q1", text: "What is 2+2?", options: ["3", "4", "5", "6"], correctIndex: 1, category: "Math" },
   timeLimit = 15,

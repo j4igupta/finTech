@@ -1,26 +1,31 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabase/client';
 
-/** Hook to fetch holdings data in real time. */
-export function useHoldings() {
+/**
+ * Live holdings for the current user. The backing `holdings` table is not part
+ * of the schema yet, so this degrades gracefully to an empty list.
+ */
+export function useHoldings(): any[] {
   const [data, setData] = useState<any[]>([]);
 
   useEffect(() => {
-    supabase.from('holdings').select('*').then(({ data, error }) => {
-      if (!error && data) setData(data);
-    });
+    const supabase = createClient();
+    let active = true;
 
-    const subscription = supabase
+    const load = async () => {
+      const { data: rows, error } = await supabase.from('holdings').select('*');
+      if (active && !error && rows) setData(rows);
+    };
+    load();
+
+    const channel = supabase
       .channel('public:holdings')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'holdings' }, () => {
-        supabase.from('holdings').select('*').then(({ data, error }) => {
-          if (!error && data) setData(data);
-        });
-      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'holdings' }, () => load())
       .subscribe();
 
     return () => {
-      supabase.removeChannel(subscription);
+      active = false;
+      supabase.removeChannel(channel);
     };
   }, []);
 

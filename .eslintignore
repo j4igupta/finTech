@@ -1,0 +1,9 @@
+node_modules
+.next
+out
+build
+finTech
+supabase/functions
+next-env.d.ts
+*.config.js
+*.config.mjs

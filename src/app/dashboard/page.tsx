@@ -29,14 +29,13 @@ function DashboardContent() {
   // Real‑time data from Supabase
   const portfolio = usePortfolio();
   const quests = useQuests();
-  const leaderboard = useLeaderboard();
+  const { data: leaderboardPlayers } = useLeaderboard();
   const holdings = useHoldings();
   const { currentXp, level } = useXP(); // assume a hook that provides XP info
 
   // Fallbacks if Supabase tables are missing or empty
   const portfolioData = portfolio.length ? portfolio : [];
   const questList = quests.length ? quests : [];
-  const leaderboardPlayers = leaderboard.length ? leaderboard : [];
   const holdingsList = holdings.length ? holdings : [];
 
   // Example calculations – adapt as needed based on actual table schema

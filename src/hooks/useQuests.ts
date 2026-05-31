@@ -1,26 +1,31 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabase/client';
 
-/** Hook to fetch quests in real time. */
-export function useQuests() {
+/**
+ * Live daily quests for the current user. The backing `quests` table is not
+ * part of the schema yet, so this degrades gracefully to an empty list.
+ */
+export function useQuests(): any[] {
   const [data, setData] = useState<any[]>([]);
 
   useEffect(() => {
-    supabase.from('quests').select('*').then(({ data, error }) => {
-      if (!error && data) setData(data);
-    });
+    const supabase = createClient();
+    let active = true;
 
-    const subscription = supabase
+    const load = async () => {
+      const { data: rows, error } = await supabase.from('quests').select('*');
+      if (active && !error && rows) setData(rows);
+    };
+    load();
+
+    const channel = supabase
       .channel('public:quests')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'quests' }, () => {
-        supabase.from('quests').select('*').then(({ data, error }) => {
-          if (!error && data) setData(data);
-        });
-      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'quests' }, () => load())
       .subscribe();
 
     return () => {
-      supabase.removeChannel(subscription);
+      active = false;
+      supabase.removeChannel(channel);
     };
   }, []);
 

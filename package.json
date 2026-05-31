@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "test": "vitest run"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -39,7 +40,8 @@
     "autoprefixer": "^10.5.0",
     "eslint": "8.48.0",
     "eslint-config-next": "^13.5.0",
-    "prettier": "3.1.0"
+    "prettier": "3.1.0",
+    "vitest": "^2.1.9"
   },
   "optionalDependencies": {
     "bufferutil": "^4.1.0",

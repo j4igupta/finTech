@@ -131,7 +131,7 @@ function PlayerAvatar({
       )}
     >
       <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1E90FF]/30 to-[#FF69B4]/30 text-sm font-bold uppercase text-foreground">
-        {username.slice(0, 2)}
+        {(username || "??").slice(0, 2)}
       </div>
     </div>
   );
